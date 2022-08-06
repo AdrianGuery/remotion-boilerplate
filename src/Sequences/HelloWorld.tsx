@@ -1,14 +1,16 @@
-import {spring} from 'remotion';
+import {useEffect, useState} from "react";
+import {continueRender, delayRender, spring} from "remotion";
 import {
 	AbsoluteFill,
 	interpolate,
 	Sequence,
 	useCurrentFrame,
 	useVideoConfig,
-} from 'remotion';
-import {Logo} from './HelloWorld/Logo';
-import {Subtitle} from './HelloWorld/Subtitle';
-import {Title} from './HelloWorld/Title';
+} from "remotion";
+import {Logo} from "../components/Logo";
+import {Subtitle} from "../components/Subtitle";
+import {Title} from "../components/Title";
+import useGetHelloWorld from "../hooks/api/useGetHelloWorld";
 
 export const HelloWorld: React.FC<{
 	titleText: string;
@@ -16,6 +18,24 @@ export const HelloWorld: React.FC<{
 }> = ({titleText, titleColor}) => {
 	const frame = useCurrentFrame();
 	const {durationInFrames, fps} = useVideoConfig();
+
+	//API call
+	const [handle] = useState(() => delayRender());
+
+	const {
+		data: helloWorldFromAPI,
+		isLoading,
+		isSuccess,
+		isError,
+	} = useGetHelloWorld();
+
+	useEffect(() => {
+		if (isSuccess) {
+			continueRender(handle);
+		}
+	}, [isSuccess]);
+
+	console.log("helloWolrdFromAPI", helloWorldFromAPI);
 
 	// Animate from 0 to 1 after 25 frames
 	const logoTranslationProgress = spring({
@@ -39,14 +59,14 @@ export const HelloWorld: React.FC<{
 		[durationInFrames - 25, durationInFrames - 15],
 		[1, 0],
 		{
-			extrapolateLeft: 'clamp',
-			extrapolateRight: 'clamp',
+			extrapolateLeft: "clamp",
+			extrapolateRight: "clamp",
 		}
 	);
 
 	// A <AbsoluteFill> is just a absolutely positioned <div>!
 	return (
-		<AbsoluteFill style={{backgroundColor: 'white'}}>
+		<AbsoluteFill style={{backgroundColor: "white"}}>
 			<AbsoluteFill style={{opacity}}>
 				<AbsoluteFill style={{transform: `translateY(${logoTranslation}px)`}}>
 					<Logo />
